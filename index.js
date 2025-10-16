@@ -1,22 +1,30 @@
-require('dotenv').config()
-const http = require('http')
+require('dotenv').config();
+const http = require('http');
+const fs = require('fs'); // Módulo para leer archivos (File System)
+const path = require('path'); // Módulo para manejar rutas de archivos
 
-// Esta es la función corregida que SÍ responde a las peticiones
-function requestController(req, res){
-    // Enviamos una respuesta al cliente (Render en este caso)
-    res.writeHead(200, { "Content-Type": "text/plain" });
-    res.end("Bienvenidos al curso");
+const server = http.createServer((req, res) => {
+    // Construimos la ruta al archivo index.html de forma segura
+    const filePath = path.join(__dirname, 'index.html');
 
-    // Mostramos un mensaje en la consola para saber que funcionó
-    console.log("Petición recibida y respuesta enviada.");
-}
+    // Leemos el archivo HTML
+    fs.readFile(filePath, (err, content) => {
+        if (err) {
+            // Si hay un error (ej: el archivo no existe), respondemos con un error 500
+            res.writeHead(500);
+            res.end(`Error del servidor: ${err.code}`);
+        } else {
+            // Si se leyó correctamente, lo enviamos al navegador
+            // Le decimos al navegador que estamos enviando contenido HTML
+            res.writeHead(200, { 'Content-Type': 'text/html' });
+            res.end(content, 'utf-8');
+        }
+    });
+});
 
-const server = http.createServer(requestController);
-
-// Render nos da el puerto a través de las variables de entorno
 const PORT = process.env.PORT || 10000;
 
-// Escuchamos en el puerto y en la dirección IP correcta para Render
+// Usamos 0.0.0.0 para que sea compatible con Render
 server.listen(PORT, '0.0.0.0', () => {
-    console.log(`Aplicación corriendo en el puerto ${PORT}`);
+    console.log(`Servidor corriendo en el puerto ${PORT} y mostrando index.html`);
 });
